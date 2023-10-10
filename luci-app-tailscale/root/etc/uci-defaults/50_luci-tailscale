@@ -1,11 +1,11 @@
 #!/bin/sh
 
 uci -q batch <<-EOF >/dev/null
-	delete ucitrack.@tailscale[-1]
-	add ucitrack tailscale
-	set ucitrack.@tailscale[-1].init=tailscale
+	delete ucitrack.@tailscaler[-1]
+	add ucitrack tailscaler
+	set ucitrack.@tailscaler[-1].init=tailscaler
 	commit ucitrack
 EOF
 
-/etc/init.d/tailscale enable
+/etc/init.d/tailscaler enable
 exit 0

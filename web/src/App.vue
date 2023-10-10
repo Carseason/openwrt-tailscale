@@ -37,16 +37,6 @@
             <div class="cbi-section-node">
                 <!--  -->
                 <div class="cbi-value">
-                    <label class="cbi-value-title">接受DNS</label>
-                    <div class="cbi-value-field">
-                        <div class="cbi-checkbox">
-                            <input name="acceptdns" type="checkbox" :value="false" v-model="config.acceptDns">
-                            <label></label>
-                        </div>
-                    </div>
-                </div>
-                <!--  -->
-                <div class="cbi-value">
                     <label class="cbi-value-title">接受组网</label>
                     <div class="cbi-value-field">
                         <div class="cbi-checkbox">
@@ -73,7 +63,7 @@
                     <label class="cbi-value-title">宣告网段</label>
                     <div class="cbi-value-field">
                         <div>
-                            <input type="text" class="cbi-input-text" name="advertiseroutes" placeholder="IP地址,多个实用,分开"
+                            <input type="text" class="cbi-input-text" name="advertiseroutes" placeholder="IP地址,多个使用,分开"
                                 v-model.trim="config.advertiseRoutes">
                         </div>
                         <div class="cbi-value-description">
@@ -128,7 +118,6 @@ interface TailscaleStatus {
 }
 interface TailscaleConfig {
     enable?: boolean
-    acceptDns?: boolean
     acceptRoutes?: boolean
     hostname?: string
     advertiseRoutes?: string

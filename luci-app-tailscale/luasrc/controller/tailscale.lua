@@ -30,7 +30,6 @@ end
 function getTailscaleConfig()
     local uci  				= 	require "luci.model.uci".cursor()
     local enable   			= 	uci:get_first("tailscale", "tailscale", "enable")
-    local acceptDns   		= 	uci:get_first("tailscale", "tailscale", "acceptDns")
     local acceptRoutes  	= 	uci:get_first("tailscale", "tailscale", "acceptRoutes")
     local hostname   		= 	uci:get_first("tailscale", "tailscale", "hostname")
     local advertiseRoutes   = 	uci:get_first("tailscale", "tailscale", "advertiseRoutes")
@@ -38,7 +37,6 @@ function getTailscaleConfig()
     local authkey   		= 	uci:get_first("tailscale", "tailscale", "authkey")
     local result 			= 	{
         enable    			= 	(enable == "1"),
-        acceptDns 			= 	(acceptDns == "1"),
 		acceptRoutes 		= 	(acceptRoutes == "1"),
 		advertiseRoutes		=	advertiseRoutes,
 		hostname			=	hostname,
@@ -65,10 +63,6 @@ function submitTailscaleConfig(req)
 	-- hostname
 	if req.hostname ~= nil then
 		uci:set("tailscale","@tailscale[0]","hostname",req.hostname)
-	end
-	-- acceptDns
-	if req.acceptDns ~= nil then
-		uci:set("tailscale","@tailscale[0]","acceptDns",req.acceptDns)
 	end
 	-- acceptRoutes
 	if req.acceptRoutes ~= nil then
@@ -105,7 +99,7 @@ end
 function tailscale_log()
 	local http = require "luci.http" 
     local fs   = require "nixio.fs"
-    local data = fs.readfile("/tmp/tailscale.log")
+    local data = fs.readfile("/tmp/tailscaler.log")
     http.prepare_content("text/plain;charset=utf-8")
     http.write(data)
 end
