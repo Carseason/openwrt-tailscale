@@ -5,17 +5,21 @@ function index()
 	if not nixio.fs.access("/etc/config/tailscale") then
         return
     end
-	entry({"admin", "services", "tailscale"},cbi("tailscale"), _("tailscale"), 21).dependent = true
+	entry({"admin", "services", "tailscale"},	cbll("tailscale_template"), _("Tailscale"), 21).dependent = true
     entry({"admin", "services", "tailscale", "status"}, call("tailscale_status"))
-	entry({"admin", "services", "tailscale", "cnfig"}, call("tailscale_config"))
-	entry({"admin", "services", "tailscale", "log"}, call("tailscale_log"))
+	entry({"admin", "services", "tailscale", "config"}, call("tailscale_config"))
+	entry({"admin", "services", "tailscale", "log"}, 	call("tailscale_log"))
+end
+
+function tailscale_template()
+    luci.template.render("tailscale/main")
 end
 
 function tailscale_status()
 	local sys  = require "luci.sys"
 	local uci  = require "luci.model.uci".cursor()
 	-- 是否在运行
-	running = (sys.call("pidof tailscale >/dev/null") == 0),
+	local running = (sys.call("pidof tailscale >/dev/null") == 0),
 	local resp = {
 		running = running,
 	}
@@ -24,22 +28,22 @@ function tailscale_status()
 end
 
 function getTailscaleConfig()
-    local uci  = require "luci.model.uci".cursor()
-    local enable   = uci:get_first("tailscale", "tailscale", "enable")
-    local acceptDns   = uci:get_first("tailscale", "tailscale", "acceptDns")
-    local acceptRoutes   = uci:get_first("tailscale", "tailscale", "acceptRoutes")
-    local hostname   = uci:get_first("tailscale", "tailscale", "hostname")
-    local advertiseRoutes   = uci:get_first("tailscale", "tailscale", "advertiseRoutes")
-    local loginServer   = uci:get_first("tailscale", "tailscale", "loginServer")
-    local authkey   = uci:get_first("tailscale", "tailscale", "authkey")
-    local result = {
-        enable    		= 	(enable == "1"),
-        acceptDns 		= 	(acceptDns == "1"),
-		acceptRoutes 	= 	(acceptRoutes == "1"),
-		advertiseRoutes	=	advertiseRoutes,
-		hostname		=	hostname,
-		loginServer		=	loginServer,
-		authkey			=	authkey,
+    local uci  				= 	require "luci.model.uci".cursor()
+    local enable   			= 	uci:get_first("tailscale", "tailscale", "enable")
+    local acceptDns   		= 	uci:get_first("tailscale", "tailscale", "acceptDns")
+    local acceptRoutes  	= 	uci:get_first("tailscale", "tailscale", "acceptRoutes")
+    local hostname   		= 	uci:get_first("tailscale", "tailscale", "hostname")
+    local advertiseRoutes   = 	uci:get_first("tailscale", "tailscale", "advertiseRoutes")
+    local loginServer  		= 	uci:get_first("tailscale", "tailscale", "loginServer")
+    local authkey   		= 	uci:get_first("tailscale", "tailscale", "authkey")
+    local result 			= 	{
+        enable    			= 	(enable == "1"),
+        acceptDns 			= 	(acceptDns == "1"),
+		acceptRoutes 		= 	(acceptRoutes == "1"),
+		advertiseRoutes		=	advertiseRoutes,
+		hostname			=	hostname,
+		loginServer			=	loginServer,
+		authkey				=	authkey,
     }
     return result
 end

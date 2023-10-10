@@ -8,7 +8,7 @@ include $(TOPDIR)/rules.mk
 
 LUCI_TITLE:=LuCI support for tailscale
 PKG_VERSION:=0.0.1
-# LUCI_DEPENDS:=+tailscale
+LUCI_DEPENDS:=+tailscale
 
 include $(TOPDIR)/feeds/luci/luci.mk
 

@@ -60,7 +60,8 @@
                     <label class="cbi-value-title">设备名称</label>
                     <div class="cbi-value-field">
                         <div>
-                            <input type="text" class="cbi-input-text" name="hostname" v-model.trim="config.hostname">
+                            <input type="text" class="cbi-input-text" name="hostname" v-model.trim="config.hostname"
+                                placeholder="例如: iStoreOS">
                         </div>
                         <div class="cbi-value-description">
                             留空则使用设备的名称
@@ -96,7 +97,8 @@
                     <label class="cbi-value-title">服务器地址</label>
                     <div class="cbi-value-field">
                         <div>
-                            <input type="text" class="cbi-input-text" name="loginserver" v-model.trim="config.loginServer">
+                            <input type="text" class="cbi-input-text" name="loginserver" v-model.trim="config.loginServer"
+                                placeholder="server 服务器地址,留空则不使用">
                         </div>
                     </div>
                 </div>
@@ -105,7 +107,8 @@
                     <label class="cbi-value-title">令牌</label>
                     <div class="cbi-value-field">
                         <div>
-                            <input type="password" class="cbi-input-password" name="authkey" v-model.trim="config.authkey">
+                            <input type="password" class="cbi-input-password" name="authkey" v-model.trim="config.authkey"
+                                placeholder="自定义令牌,留空则不使用">
                         </div>
                     </div>
                 </div>
@@ -119,6 +122,7 @@
 </template>
 <script setup lang="ts">
 import { ref } from 'vue';
+const BASEURL = "/cgi-bin/luci/admin/services/tailscale"
 interface TailscaleStatus {
     running?: boolean
 }
@@ -135,7 +139,7 @@ const status = ref<boolean | undefined>(undefined)
 const config = ref<TailscaleConfig>({})
 const getStatus = async () => {
     try {
-        const resp = await fetch("/admin/services/tailscale/status", {
+        const resp = await fetch(`${BASEURL}/status`, {
             method: "GET"
         })
         const res = await resp.json() as TailscaleStatus
@@ -148,7 +152,7 @@ const getStatus = async () => {
 }
 const getConfig = async () => {
     try {
-        const resp = await fetch("/admin/services/tailscale/config", {
+        const resp = await fetch(`${BASEURL}/config`, {
             method: "GET"
         })
         const res = await resp.json() as TailscaleConfig
@@ -176,7 +180,7 @@ const getData = async () => {
 getData()
 const onSubmit = async () => {
     try {
-        const resp = await fetch("/admin/services/tailscale/config", {
+        const resp = await fetch(`${BASEURL}/config`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json;charset=utf-8'

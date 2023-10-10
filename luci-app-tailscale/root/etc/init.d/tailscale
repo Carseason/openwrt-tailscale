@@ -1,0 +1,66 @@
+#!/bin/sh /etc/rc.common
+
+START=95
+USE_PROCD=1
+
+get_config() {
+	config_get_bool enabled $1 enabled 1
+	config_get_bool acceptDns $1 acceptDns 0
+	config_get_bool acceptRoutes $1 acceptRoutes 0
+	config_get loginServer $1 loginServer
+	config_get authkey $1 authkey
+	config_get hostname $1 hostname
+	config_get advertiseRoutes $1 advertiseRoutes
+}
+
+start_service() {
+	config_load tailscale
+	config_foreach get_config tailscale
+	procd_open_instance
+	if [ $enabled != 1 ]; then
+		procd_set_param command /etc/init.d/tailscale stop
+		procd_set_param stderr 1
+		procd_set_param respawn
+		procd_close_instance
+		return 1
+	fi
+	params=""
+	if [ $loginServer != "" ]; then
+		params="$params --login-server=$loginServer" 
+	fi
+	if [ $authkey != "" ]; then
+		params="$params --authkey $authkey" 
+	fi
+	if [ $hostname != "" ]; then
+		params="$params --hostname=$hostname" 
+	fi
+	if [ $acceptDns == 0 ]; then
+		params="$params --accept-dns=false" 
+	fi
+	if [ $acceptRoutes == 1 ]; then
+		params="$params --accept-routes=true" 
+	fi
+	if [ $advertiseRoutes != "" ];then
+		params="$params --advertise-routes=$advertiseRoutes"
+	fi
+	procd_set_param command tailscale up $params --reset
+	procd_set_param stderr 1
+	procd_set_param respawn
+	procd_close_instance
+}
+
+stop_service(){
+	# kill 掉 tailscaled 进程
+	local pid= $(pidof tailscaled)
+	if [[ -n $pid ]]; then
+		kill -9 $pid
+	fi
+    # 清理系统状态并退出登录
+    # 会导致生成新设备
+    # /usr/sbin/tailscaled --cleanup >/dev/null
+}
+
+
+service_triggers() {
+	procd_add_reload_trigger "tailscale"
+}

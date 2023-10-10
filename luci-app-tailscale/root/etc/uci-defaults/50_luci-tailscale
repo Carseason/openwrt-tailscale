@@ -1,4 +1,11 @@
 #!/bin/sh
 
-rm -f /tmp/luci-*
+uci -q batch <<-EOF >/dev/null
+	delete ucitrack.@tailscale[-1]
+	add ucitrack tailscale
+	set ucitrack.@tailscale[-1].init=tailscale
+	commit ucitrack
+EOF
+
+/etc/init.d/tailscale enable
 exit 0
