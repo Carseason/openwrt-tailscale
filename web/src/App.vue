@@ -17,14 +17,14 @@
                         <a v-else-if="status" style="color:green"> 运行中</a>
                         <a v-else style="color:red">未运行</a>
                         <br />
-                        <a href="/admin/services/tailscale/log" target="_blank">运行日志</a>
+                        <a href="/cgi-bin/luci/admin/services/tailscale/log" target="_blank">运行日志</a>
                     </div>
                 </div>
                 <div class="cbi-value cbi-value-last">
                     <label class="cbi-value-title">启用</label>
                     <div class="cbi-value-field">
                         <div class="cbi-checkbox">
-                            <input name="enabled" type="checkbox" :value="false" v-model="config.enable">
+                            <input name="enabled" type="checkbox" :value="false" v-model="config.enabled">
                             <label></label>
                         </div>
                     </div>
@@ -37,7 +37,7 @@
             <div class="cbi-section-node">
                 <!--  -->
                 <div class="cbi-value">
-                    <label class="cbi-value-title">接受组网</label>
+                    <label class="cbi-value-title">允许组网</label>
                     <div class="cbi-value-field">
                         <div class="cbi-checkbox">
                             <input name="acceptroutes" type="checkbox" :value="false" v-model="config.acceptRoutes">
@@ -60,7 +60,7 @@
                 </div>
                 <!--  -->
                 <div class="cbi-value">
-                    <label class="cbi-value-title">宣告网段</label>
+                    <label class="cbi-value-title">公开网段</label>
                     <div class="cbi-value-field">
                         <div>
                             <input type="text" class="cbi-input-text" name="advertiseroutes" placeholder="IP地址,多个使用,分开"
@@ -117,7 +117,7 @@ interface TailscaleStatus {
     running?: boolean
 }
 interface TailscaleConfig {
-    enable?: boolean
+    enabled?: boolean
     acceptRoutes?: boolean
     hostname?: string
     advertiseRoutes?: string

@@ -5,7 +5,7 @@ function index()
 	if not nixio.fs.access("/etc/config/tailscale") then
         return
     end
-	entry({"admin", "services", "tailscale"},	cbll("tailscale_template"), _("Tailscale"), 21).dependent = true
+	entry({"admin", "services", "tailscale"},	call("tailscale_template"), _("Tailscale"), 21).dependent = true
     entry({"admin", "services", "tailscale", "status"}, call("tailscale_status"))
 	entry({"admin", "services", "tailscale", "config"}, call("tailscale_config"))
 	entry({"admin", "services", "tailscale", "log"}, 	call("tailscale_log"))
@@ -19,7 +19,7 @@ function tailscale_status()
 	local sys  = require "luci.sys"
 	local uci  = require "luci.model.uci".cursor()
 	-- 是否在运行
-	local running = (sys.call("pidof tailscale >/dev/null") == 0),
+	local running = (sys.call("pidof tailscaled >/dev/null") == 0)
 	local resp = {
 		running = running,
 	}
