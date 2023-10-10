@@ -58,7 +58,9 @@ jobs:
           npm install pnpm -g
 
       # 打包 web 项目
-      - run: cd web && make build
+      - run: cd web
+          pnpm i
+          pnpm run build
 
       # 复制 web至 luci
       - run: |
