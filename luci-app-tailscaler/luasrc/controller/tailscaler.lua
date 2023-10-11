@@ -5,10 +5,13 @@ function index()
 	if not nixio.fs.access("/etc/config/tailscaler") then
         return
     end
-	entry({"admin", "services", "tailscaler"},	call("tailscale_template"), _("Tailscale"), 21).dependent = true
-    entry({"admin", "services", "tailscaler", "status"}, call("tailscale_status"))
-	entry({"admin", "services", "tailscaler", "config"}, call("tailscale_config"))
-	entry({"admin", "services", "tailscaler", "log"}, 	call("tailscale_log"))
+	entry({"admin", "services", "tailscaler"},				call("tailscale_template"), _("Tailscale"), 21).dependent = true
+    entry({"admin", "services", "tailscaler", "status"}, 	call("tailscale_status"))
+	entry({"admin", "services", "tailscaler", "config"}, 	call("tailscale_config"))
+	entry({"admin", "services", "tailscaler", "log"}, 		call("tailscale_log"))
+	entry({"admin", "services", "tailscaler", "logout"}, 	call("tailscale_logout"))
+
+	
 end
 
 function tailscale_template()
@@ -97,9 +100,18 @@ function tailscale_config()
 end
 
 function tailscale_log()
+	local sys  = require "luci.sys"
 	local http = require "luci.http" 
     -- http.prepare_content("text/plain;charset=utf-8")
 	http.prepare_content("application/json")
-	local text = sys.call("tailscale status --json")
+	local text = sys.exec("tailscale status --json")
+    http.write(text)
+end
+
+function tailscale_logout()
+	local sys  = require "luci.sys"
+	local http = require "luci.http" 
+	http.prepare_content("application/json")
+	local text = sys.exec("tailscale logout")
     http.write(text)
 end
