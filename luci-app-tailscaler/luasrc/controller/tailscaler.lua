@@ -6,7 +6,6 @@ function index()
         return
     end
 	entry({"admin", "services", "tailscaler"},				call("tailscale_template"), _("Tailscale"), 21).dependent = true
-    entry({"admin", "services", "tailscaler", "running"}, 	call("tailscale_running"))
 	entry({"admin", "services", "tailscaler", "config"}, 	call("tailscale_config"))
 	entry({"admin", "services", "tailscaler", "status"}, 	call("tailscale_status"))
 	entry({"admin", "services", "tailscaler", "logout"}, 	call("tailscale_logout"))
@@ -16,17 +15,6 @@ function tailscale_template()
     luci.template.render("tailscaler/main")
 end
 
-function tailscale_running()
-	local sys  = require "luci.sys"
-	local uci  = require "luci.model.uci".cursor()
-	-- 是否在运行
-	local running = (sys.call("pidof tailscaled >/dev/null") == 0)
-	local resp = {
-		running = running,
-	}
-	luci.http.prepare_content("application/json")
-	luci.http.write_json(resp)
-end
 
 function getTailscaleConfig()
     local uci  				= 	require "luci.model.uci".cursor()
