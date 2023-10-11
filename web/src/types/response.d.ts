@@ -13,14 +13,27 @@ declare interface ResponseConfig {
 // 
 declare interface ResponseStatus {
     Version?: string
+    // 服务状态
     BackendState?: string
+    // 是否有绑定链接
     AuthURL?: string
     TailscaleIPs?: string[]
-    Self?: ResponseStatusSelf
     Health?: string[]
     MagicDNSSuffix?: string
+    // 当前节点
+    Self?: ResponseStatusSelf
+    // 已绑定用户
+    User?: {
+        [key: string]: ResponseStatusUser
+    }
 }
-
+declare interface ResponseStatusUser {
+    ID?: number
+    LoginName?: string
+    DisplayName?: string
+    ProfilePicURL?: string
+    Roles?: any[]
+}
 declare interface ResponseStatusSelf {
     ID: string
     PublicKey: string

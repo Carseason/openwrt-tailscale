@@ -11,20 +11,6 @@
             <h3>服务状态</h3>
             <div class="cbi-section-node">
                 <div class="cbi-value cbi-value-last">
-                    <label class="cbi-value-title">服务状态</label>
-                    <div class="cbi-value-field">
-                        <a v-if="running === undefined">加载中...</a>
-                        <a v-else-if="running" style="color:green"> 运行中</a>
-                        <a v-else style="color:red">未运行</a>
-                    </div>
-                </div>
-                <div class="cbi-value cbi-value-last" v-if="status.AuthURL">
-                    <label class="cbi-value-title">验证链接</label>
-                    <div class="cbi-value-field">
-                        <a :="status.AuthURL" target="_blank">{{ status.AuthURL }}</a>
-                    </div>
-                </div>
-                <div class="cbi-value cbi-value-last">
                     <label class="cbi-value-title">启用</label>
                     <div class="cbi-value-field">
                         <div class="cbi-checkbox">
@@ -33,6 +19,42 @@
                         </div>
                     </div>
                 </div>
+                <div class="cbi-value cbi-value-last">
+                    <label class="cbi-value-title">服务状态</label>
+                    <div class="cbi-value-field">
+                        <a v-if="loading">加载中...</a>
+                        <template v-else>
+                            <a v-if="status?.BackendState" style="color:green"> {{ status?.BackendState }}</a>
+                            <a v-else style="color:red">未运行</a>
+                        </template>
+                    </div>
+                </div>
+                <div class="cbi-value cbi-value-last" v-if="status?.Self?.ID">
+                    <label class="cbi-value-title">当前节点</label>
+                    <div class="cbi-value-field">
+                        <a>
+                            {{ status?.Self?.ID }}
+                            <template v-if="status?.Self?.HostName">
+                                （{{ status.Self.HostName }}）
+                            </template>
+                        </a>
+                    </div>
+                </div>
+                <div class="cbi-value cbi-value-last" v-if="status?.AuthURL">
+                    <label class="cbi-value-title">验证绑定</label>
+                    <div class="cbi-value-field">
+                        <a :href="status.AuthURL" target="_blank">{{ status.AuthURL }}</a>
+                    </div>
+                </div>
+                <div class="cbi-value cbi-value-last" v-if="user?.DisplayName">
+                    <label class="cbi-value-title">已绑定用户</label>
+                    <div class="cbi-value-field">
+                        <a href="https://login.tailscale.com/admin/machines/" target="_blank">{{ user.DisplayName }}</a>
+                        <br />
+                        <a @click="onLogout" style="color:green">注销登录并解除绑定</a>
+                    </div>
+                </div>
+
             </div>
         </div>
         <!--  -->
@@ -117,33 +139,40 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 const BASEURL = "/cgi-bin/luci/admin/services/tailscaler"
-const running = ref<boolean | undefined>(undefined)
+const loading = ref(true)
 const config = ref<ResponseConfig>({})
 const status = ref<ResponseStatus>({})
-const getRunning = async () => {
-    try {
-        const resp = await fetch(`${BASEURL}/running`, {
-            method: "GET"
-        })
-        const res = await resp.json() as ResponseRunning
-        if (res) {
-            running.value = res.running || false
-        }
-    } catch (error) {
-        console.log(error);
-    }
-}
+const user = ref<ResponseStatusUser>({})
+
 const getStatus = async () => {
     try {
         const resp = await fetch(`${BASEURL}/status`, {
             method: "GET"
         })
+
         const res = await resp.json() as ResponseStatus
         if (res) {
             status.value = res
+            if (res?.User) {
+                for (const key in res.User) {
+                    if (Object.prototype.hasOwnProperty.call(res.User, key)) {
+                        const element = res.User[key];
+                        if (element) {
+                            user.value = element
+                        }
+                    }
+                }
+            } else {
+                user.value = {}
+            }
+        } else {
+            status.value = {}
         }
     } catch (error) {
+        // 拿不到数据则认为程序没启动
         console.log(error);
+        status.value = {}
+        user.value = {}
     }
 }
 const getConfig = async () => {
@@ -160,20 +189,22 @@ const getConfig = async () => {
     }
 }
 const getData = async () => {
-    setTimeout(() => {
-        getRunning()
-        getStatus()
-    }, 5000)
     try {
         await Promise.all([
-            getRunning(),
             getConfig(),
             getStatus(),
         ])
     } catch (error) {
     } finally {
+        loading.value = false
     }
 }
+const getInterval = async () => {
+    setInterval(() => {
+        getStatus()
+    }, 5000)
+}
+getInterval()
 getData()
 const onSubmit = async () => {
     try {
@@ -189,8 +220,29 @@ const onSubmit = async () => {
         }
     } catch (error) {
         console.log(error);
+    } finally {
+        location.reload()
     }
 
+}
+const onLogout = async () => {
+    if (!confirm("是否注销当前登录并且解绑当前设备？")) {
+        return
+    }
+    try {
+        const resp = await fetch(`${BASEURL}/logout`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+        })
+        if (resp) {
+        }
+    } catch (error) {
+        console.log(error);
+    } finally {
+        location.reload()
+    }
 }
 </script>
 <style lang="scss" scoped></style>
