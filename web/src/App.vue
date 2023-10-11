@@ -17,7 +17,7 @@
                         <a v-else-if="status" style="color:green"> 运行中</a>
                         <a v-else style="color:red">未运行</a>
                         <br />
-                        <a href="/cgi-bin/luci/admin/services/tailscale/log" target="_blank">运行日志</a>
+                        <a :href="`${BASEURL}/log`" target="_blank">运行日志</a>
                     </div>
                 </div>
                 <div class="cbi-value cbi-value-last">
@@ -112,7 +112,7 @@
 </template>
 <script setup lang="ts">
 import { ref } from 'vue';
-const BASEURL = "/cgi-bin/luci/admin/services/tailscale"
+const BASEURL = "/cgi-bin/luci/admin/services/tailscaler"
 interface TailscaleStatus {
     running?: boolean
 }

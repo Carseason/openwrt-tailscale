@@ -25,9 +25,9 @@ export default defineConfig({
         chunkSizeWarningLimit: 4096,
         rollupOptions: {
             output: {
-                entryFileNames: `luci-static/tailscale/[name].js?v=[hash]`,
-                chunkFileNames: `luci-static/tailscale/chunk.[hash].js`,
-                assetFileNames: `luci-static/tailscale/[name].[ext]?v=[hash]`
+                entryFileNames: `luci-static/tailscaler/[name].js?v=[hash]`,
+                chunkFileNames: `luci-static/tailscaler/chunk.[hash].js`,
+                assetFileNames: `luci-static/tailscaler/[name].[ext]?v=[hash]`
             },
             plugins: [
                 rename()
