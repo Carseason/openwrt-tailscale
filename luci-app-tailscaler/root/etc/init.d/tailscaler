@@ -5,7 +5,6 @@ USE_PROCD=1
 
 get_config() {
 	config_get_bool enabled $1 enabled 1
-	config_get_bool acceptDns $1 acceptDns 0
 	config_get_bool acceptRoutes $1 acceptRoutes 0
 	config_get loginServer $1 loginServer
 	config_get authkey $1 authkey
@@ -14,8 +13,8 @@ get_config() {
 }
 
 start_service() {
-	config_load tailscale
-	config_foreach get_config tailscale
+	config_load tailscaler
+	config_foreach get_config tailscaler
 	procd_open_instance
 	if [ $enabled != 1 ]; then
 		procd_set_param command /etc/init.d/tailscaler stop
@@ -40,21 +39,14 @@ start_service() {
 	if [ $advertiseRoutes != "" ];then
 		params="$params --advertise-routes=$advertiseRoutes"
 	fi
-	procd_set_param command tailscale up $params --reset > /tmp/tailscaler.log
+	procd_set_param command tailscale up $params --reset > /tmp/tailscaler.log 2>&1
 	procd_set_param stderr 1
 	procd_set_param respawn
 	procd_close_instance
 }
 
 stop_service(){
-	# kill 掉 tailscaled 进程
-	local pid= $(pidof tailscaled)
-	if [[ -n $pid ]]; then
-		kill -9 $pid
-	fi
-    # 清理系统状态并退出登录
-    # 会导致生成新设备
-    # /usr/sbin/tailscaled --cleanup >/dev/null
+    /usr/sbin/tailscaled --cleanup
 }
 
 

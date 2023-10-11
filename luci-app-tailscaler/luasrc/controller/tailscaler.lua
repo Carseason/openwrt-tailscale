@@ -1,18 +1,18 @@
 local http = require "luci.http"
-module("luci.controller.tailscale", package.seeall)
+module("luci.controller.tailscaler", package.seeall)
 
 function index()
-	if not nixio.fs.access("/etc/config/tailscale") then
+	if not nixio.fs.access("/etc/config/tailscaler") then
         return
     end
-	entry({"admin", "services", "tailscale"},	call("tailscale_template"), _("Tailscale"), 21).dependent = true
-    entry({"admin", "services", "tailscale", "status"}, call("tailscale_status"))
-	entry({"admin", "services", "tailscale", "config"}, call("tailscale_config"))
-	entry({"admin", "services", "tailscale", "log"}, 	call("tailscale_log"))
+	entry({"admin", "services", "tailscaler"},	call("tailscale_template"), _("Tailscale"), 21).dependent = true
+    entry({"admin", "services", "tailscaler", "status"}, call("tailscale_status"))
+	entry({"admin", "services", "tailscaler", "config"}, call("tailscale_config"))
+	entry({"admin", "services", "tailscaler", "log"}, 	call("tailscale_log"))
 end
 
 function tailscale_template()
-    luci.template.render("tailscale/main")
+    luci.template.render("tailscaler/main")
 end
 
 function tailscale_status()
@@ -29,14 +29,14 @@ end
 
 function getTailscaleConfig()
     local uci  				= 	require "luci.model.uci".cursor()
-    local enable   			= 	uci:get_first("tailscale", "tailscale", "enable")
-    local acceptRoutes  	= 	uci:get_first("tailscale", "tailscale", "acceptRoutes")
-    local hostname   		= 	uci:get_first("tailscale", "tailscale", "hostname")
-    local advertiseRoutes   = 	uci:get_first("tailscale", "tailscale", "advertiseRoutes")
-    local loginServer  		= 	uci:get_first("tailscale", "tailscale", "loginServer")
-    local authkey   		= 	uci:get_first("tailscale", "tailscale", "authkey")
+    local enabled   		= 	uci:get_first("tailscaler", "settings", "enabled")
+    local acceptRoutes  	= 	uci:get_first("tailscaler", "settings", "acceptRoutes")
+    local hostname   		= 	uci:get_first("tailscaler", "settings", "hostname")
+    local advertiseRoutes   = 	uci:get_first("tailscaler", "settings", "advertiseRoutes")
+    local loginServer  		= 	uci:get_first("tailscaler", "settings", "loginServer")
+    local authkey   		= 	uci:get_first("tailscaler", "settings", "authkey")
     local result 			= 	{
-        enable    			= 	(enable == "1"),
+        enabled    			= 	(enabled == "1"),
 		acceptRoutes 		= 	(acceptRoutes == "1"),
 		advertiseRoutes		=	advertiseRoutes,
 		hostname			=	hostname,
@@ -48,31 +48,31 @@ end
 
 function submitTailscaleConfig(req)
 	local uci = require "luci.model.uci".cursor()
-	-- enable
+	-- enabled
 	if req.enabled ~= nil then
-		uci:set("tailscale","@tailscale[0]","enabled",req.enabled)
+		uci:set("tailscaler","@settings[0]","enabled",req.enabled)
 	end
 	-- login server url
 	if req.loginServer ~= nil then
-		uci:set("tailscale","@tailscale[0]","loginServer",req.loginServer)
+		uci:set("tailscaler","@settings[0]","loginServer",req.loginServer)
 	end
 	-- authkey
 	if req.authkey ~= nil then
-		uci:set("tailscale","@tailscale[0]","authkey",req.authkey)
+		uci:set("tailscaler","@settings[0]","authkey",req.authkey)
 	end
 	-- hostname
 	if req.hostname ~= nil then
-		uci:set("tailscale","@tailscale[0]","hostname",req.hostname)
+		uci:set("tailscaler","@settings[0]","hostname",req.hostname)
 	end
 	-- acceptRoutes
 	if req.acceptRoutes ~= nil then
-		uci:set("tailscale","@tailscale[0]","acceptRoutes",req.acceptRoutes)
+		uci:set("tailscaler","@settings[0]","acceptRoutes",req.acceptRoutes)
 	end
 	-- advertiseRoutes
 	if req.acceptRoutes ~= nil then
-		uci:set("tailscale","@tailscale[0]","advertiseRoutes",req.advertiseRoutes)
+		uci:set("tailscaler","@settings[0]","advertiseRoutes",req.advertiseRoutes)
 	end
-	uci:commit("tailscale")  
+	uci:commit("tailscaler")  
 end
 
 function tailscale_config()
@@ -98,8 +98,8 @@ end
 
 function tailscale_log()
 	local http = require "luci.http" 
-    local fs   = require "nixio.fs"
-    local data = fs.readfile("/tmp/tailscaler.log")
-    http.prepare_content("text/plain;charset=utf-8")
-    http.write(data)
+    -- http.prepare_content("text/plain;charset=utf-8")
+	http.prepare_content("application/json")
+	local text = sys.call("tailscale status --json")
+    http.write(text)
 end

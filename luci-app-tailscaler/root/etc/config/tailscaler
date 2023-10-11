@@ -1,4 +1,4 @@
-config tailscale
+config settings
 	option enabled '0'
 	option acceptRoutes '0'
 	option advertiseRoutes ''
