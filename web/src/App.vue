@@ -13,11 +13,15 @@
                 <div class="cbi-value cbi-value-last">
                     <label class="cbi-value-title">服务状态</label>
                     <div class="cbi-value-field">
-                        <a v-if="status === undefined">加载中...</a>
-                        <a v-else-if="status" style="color:green"> 运行中</a>
+                        <a v-if="running === undefined">加载中...</a>
+                        <a v-else-if="running" style="color:green"> 运行中</a>
                         <a v-else style="color:red">未运行</a>
-                        <br />
-                        <a :href="`${BASEURL}/log`" target="_blank">运行日志</a>
+                    </div>
+                </div>
+                <div class="cbi-value cbi-value-last" v-if="status.AuthURL">
+                    <label class="cbi-value-title">验证链接</label>
+                    <div class="cbi-value-field">
+                        <a :="status.AuthURL" target="_blank">{{ status.AuthURL }}</a>
                     </div>
                 </div>
                 <div class="cbi-value cbi-value-last">
@@ -113,27 +117,30 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 const BASEURL = "/cgi-bin/luci/admin/services/tailscaler"
-interface TailscaleStatus {
-    running?: boolean
+const running = ref<boolean | undefined>(undefined)
+const config = ref<ResponseConfig>({})
+const status = ref<ResponseStatus>({})
+const getRunning = async () => {
+    try {
+        const resp = await fetch(`${BASEURL}/running`, {
+            method: "GET"
+        })
+        const res = await resp.json() as ResponseRunning
+        if (res) {
+            running.value = res.running || false
+        }
+    } catch (error) {
+        console.log(error);
+    }
 }
-interface TailscaleConfig {
-    enabled?: boolean
-    acceptRoutes?: boolean
-    hostname?: string
-    advertiseRoutes?: string
-    loginServer?: string
-    authkey?: string
-}
-const status = ref<boolean | undefined>(undefined)
-const config = ref<TailscaleConfig>({})
 const getStatus = async () => {
     try {
         const resp = await fetch(`${BASEURL}/status`, {
             method: "GET"
         })
-        const res = await resp.json() as TailscaleStatus
+        const res = await resp.json() as ResponseStatus
         if (res) {
-            status.value = res.running
+            status.value = res
         }
     } catch (error) {
         console.log(error);
@@ -144,7 +151,7 @@ const getConfig = async () => {
         const resp = await fetch(`${BASEURL}/config`, {
             method: "GET"
         })
-        const res = await resp.json() as TailscaleConfig
+        const res = await resp.json() as ResponseConfig
         if (res) {
             config.value = res
         }
@@ -154,15 +161,16 @@ const getConfig = async () => {
 }
 const getData = async () => {
     setTimeout(() => {
+        getRunning()
         getStatus()
     }, 5000)
     try {
         await Promise.all([
-            getStatus(),
+            getRunning(),
             getConfig(),
+            getStatus(),
         ])
     } catch (error) {
-
     } finally {
     }
 }

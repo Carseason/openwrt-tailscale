@@ -6,19 +6,17 @@ function index()
         return
     end
 	entry({"admin", "services", "tailscaler"},				call("tailscale_template"), _("Tailscale"), 21).dependent = true
-    entry({"admin", "services", "tailscaler", "status"}, 	call("tailscale_status"))
+    entry({"admin", "services", "tailscaler", "running"}, 	call("tailscale_running"))
 	entry({"admin", "services", "tailscaler", "config"}, 	call("tailscale_config"))
-	entry({"admin", "services", "tailscaler", "log"}, 		call("tailscale_log"))
+	entry({"admin", "services", "tailscaler", "status"}, 	call("tailscale_status"))
 	entry({"admin", "services", "tailscaler", "logout"}, 	call("tailscale_logout"))
-
-	
 end
 
 function tailscale_template()
     luci.template.render("tailscaler/main")
 end
 
-function tailscale_status()
+function tailscale_running()
 	local sys  = require "luci.sys"
 	local uci  = require "luci.model.uci".cursor()
 	-- 是否在运行
@@ -94,12 +92,17 @@ function tailscale_config()
 			return 
 		end
 		submitTailscaleConfig(req)
+		if req.enabled == true then
+			luci.util.exec("/etc/init.d/tailscaler restart")
+		else
+			luci.util.exec("/etc/init.d/tailscaler stop")
+		end
 	end
 	local response = getTailscaleConfig()
     luci.http.write_json(response)
 end
 
-function tailscale_log()
+function tailscale_status()
 	local sys  = require "luci.sys"
 	local http = require "luci.http" 
     -- http.prepare_content("text/plain;charset=utf-8")
