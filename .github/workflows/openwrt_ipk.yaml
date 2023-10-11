@@ -15,6 +15,7 @@ on:
 env:
   TZ: Asia/Shanghai
   IPK_NAME: luci-app-tailscaler
+
 permissions:
   contents: write
 # 这个工作流程需要执行的任务
@@ -66,12 +67,12 @@ jobs:
 
       # 复制 web至 luci
       - run: |
-          mkdir ${{IPK_NAME}}/htdocs
-          cp -r web/dist/luci-static ${{IPK_NAME}}/htdocs
+          mkdir ${IPK_NAME}/htdocs
+          cp -r web/dist/luci-static ${IPK_NAME}/htdocs
 
       # 写入版本号
       - run: |
-          sed -i  's/PKG_VERSION:=\(.*\)/PKG_VERSION:=${{ inputs.version }}/g' ${{IPK_NAME}}/Makefile
+          sed -i  's/PKG_VERSION:=\(.*\)/PKG_VERSION:=${{ inputs.version }}/g' ${IPK_NAME}/Makefile
 
       - name: Import Env
         env:
@@ -135,13 +136,13 @@ jobs:
 
       - name: Copy Package
         run: |
-          cp -r ./${{IPK_NAME}}/ ~/openwrt-sdk/package
+          cp -r ./${IPK_NAME}/ ~/openwrt-sdk/package
 
       - name: Build IPK
         run: |
           cd ~/openwrt-sdk
-          chmod 755 -R ./package/${{IPK_NAME}}
-          make -j16 V=s package/${{IPK_NAME}}/compile
+          chmod 755 -R ./package/${IPK_NAME}
+          make -j16 V=s package/${IPK_NAME}/compile
 
       # 提交下载
       - name: Upload bin directory
