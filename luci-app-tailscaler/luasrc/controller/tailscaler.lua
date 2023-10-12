@@ -81,7 +81,7 @@ function tailscale_config()
 		end
 		submitTailscaleConfig(req)
 		if req.enabled == true then
-			luci.util.exec("/etc/init.d/tailscaler restart")
+			luci.util.exec("/etc/init.d/tailscaler start")
 		else
 			luci.util.exec("/etc/init.d/tailscaler stop")
 		end

@@ -54,7 +54,6 @@
                         <a @click="onLogout" style="color:green">注销登录并解除绑定</a>
                     </div>
                 </div>
-
             </div>
         </div>
         <!--  -->
@@ -132,7 +131,7 @@
         </div>
         <!--  -->
         <span class="cbi-page-actions control-group">
-            <button class="btn cbi-button cbi-button-apply" @click="onSubmit">保存并应用</button>
+            <button class="btn cbi-button cbi-button-apply" @click="onSubmit" :disabled="disabled">保存并应用</button>
         </span>
     </div>
 </template>
@@ -140,16 +139,19 @@
 import { ref } from 'vue';
 const BASEURL = "/cgi-bin/luci/admin/services/tailscaler"
 const loading = ref(true)
+const disabled = ref(false)
 const config = ref<ResponseConfig>({})
 const status = ref<ResponseStatus>({})
 const user = ref<ResponseStatusUser>({})
-
+const request = (input: string, init?: RequestInit | undefined) => {
+    const uri = `${BASEURL}${input}`
+    return fetch(uri, init)
+}
 const getStatus = async () => {
     try {
-        const resp = await fetch(`${BASEURL}/status`, {
+        const resp = await request("/status", {
             method: "GET"
         })
-
         const res = await resp.json() as ResponseStatus
         if (res) {
             status.value = res
@@ -177,7 +179,7 @@ const getStatus = async () => {
 }
 const getConfig = async () => {
     try {
-        const resp = await fetch(`${BASEURL}/config`, {
+        const resp = await request("/config", {
             method: "GET"
         })
         const res = await resp.json() as ResponseConfig
@@ -208,7 +210,7 @@ getInterval()
 getData()
 const onSubmit = async () => {
     try {
-        const resp = await fetch(`${BASEURL}/config`, {
+        const resp = await request("/config", {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json;charset=utf-8'
@@ -230,7 +232,7 @@ const onLogout = async () => {
         return
     }
     try {
-        const resp = await fetch(`${BASEURL}/logout`, {
+        const resp = await request("/logout", {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json;charset=utf-8'

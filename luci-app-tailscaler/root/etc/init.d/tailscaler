@@ -12,20 +12,20 @@ get_config() {
 	config_get hostname $1 hostname ""
 	config_get advertiseRoutes $1 advertiseRoutes ""
 }
-
 start_service() {
 	logger -t tailscaler 'start_service'
 	config_load tailscaler
 	config_foreach get_config settings
-	procd_open_instance
 	if [ $enabled != 1 ]; then
 		/etc/init.d/tailscale stop
 		return 1
 	fi
-	logger -t tailscaler 'restart tailscale'
-	/etc/init.d/tailscale restart
+	#
+	logger -t tailscaler 'start tailscale'
+	/etc/init.d/tailscale running || /etc/init.d/tailscale start
 	logger -t tailscaler 'start tailscaler'
 	# 
+	procd_open_instance
 	procd_set_param command /usr/sbin/tailscale up --reset
 	if [ $loginServer != "" ]; then
 		procd_append_param command --login-server "$loginServer" 
@@ -42,14 +42,8 @@ start_service() {
 	if [ $advertiseRoutes != "" ];then
 		procd_append_param command --advertise-routes "$advertiseRoutes"
 	fi
-	procd_set_param respawn
 	procd_set_param stdout 1
 	procd_set_param stderr 1
 	procd_close_instance
 	logger -t tailscaler 'end tailscaler'
-}
-
-
-service_triggers() {
-	procd_add_reload_trigger "tailscaler"
 }
