@@ -17,7 +17,7 @@ start_service() {
 	config_load tailscaler
 	config_foreach get_config settings
 	if [ $enabled != 1 ]; then
-		/etc/init.d/tailscale stop
+		stop_service
 		return 1
 	fi
 	#
@@ -46,4 +46,7 @@ start_service() {
 	procd_set_param stderr 1
 	procd_close_instance
 	logger -t tailscaler 'end tailscaler'
+}
+stop_service() {
+	/etc/init.d/tailscale stop
 }
