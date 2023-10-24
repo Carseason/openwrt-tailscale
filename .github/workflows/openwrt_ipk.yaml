@@ -62,7 +62,7 @@ jobs:
       # 打包 web 项目
       - run: |
           cd web
-          pnpm i
+          pnpm install
           pnpm run build
 
       # 复制 web至 luci
