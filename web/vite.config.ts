@@ -16,6 +16,15 @@ function rename() {
 // https://vitejs.dev/config/
 export default defineConfig({
     base: "/",
+    server: {
+        proxy: {
+            '/cgi-bin': {
+                target: "http://192.168.100.1",
+                changeOrigin: false,
+                ws: true,
+            },
+        },
+    },
     build: {
         target: "es2015",
         outDir: "dist",
@@ -25,9 +34,9 @@ export default defineConfig({
         chunkSizeWarningLimit: 4096,
         rollupOptions: {
             output: {
-                entryFileNames: `luci-static/tailscale/[name].js?v=[hash]`,
-                chunkFileNames: `luci-static/tailscale/chunk.[hash].js`,
-                assetFileNames: `luci-static/tailscale/[name].[ext]?v=[hash]`
+                entryFileNames: `luci-static/tailscaler/[name].js?v=[hash]`,
+                chunkFileNames: `luci-static/tailscaler/chunk.[hash].js`,
+                assetFileNames: `luci-static/tailscaler/[name].[ext]?v=[hash]`
             },
             plugins: [
                 rename()

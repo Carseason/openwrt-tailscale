@@ -11,22 +11,47 @@
             <h3>服务状态</h3>
             <div class="cbi-section-node">
                 <div class="cbi-value cbi-value-last">
-                    <label class="cbi-value-title">服务状态</label>
-                    <div class="cbi-value-field">
-                        <a v-if="status === undefined">加载中...</a>
-                        <a v-else-if="status" style="color:green"> 运行中</a>
-                        <a v-else style="color:red">未运行</a>
-                        <br />
-                        <a href="/admin/services/tailscale/log" target="_blank">运行日志</a>
-                    </div>
-                </div>
-                <div class="cbi-value cbi-value-last">
                     <label class="cbi-value-title">启用</label>
                     <div class="cbi-value-field">
                         <div class="cbi-checkbox">
-                            <input name="enabled" type="checkbox" :value="false" v-model="config.enable">
+                            <input name="enabled" type="checkbox" :value="false" v-model="config.enabled">
                             <label></label>
                         </div>
+                    </div>
+                </div>
+                <div class="cbi-value cbi-value-last">
+                    <label class="cbi-value-title">服务状态</label>
+                    <div class="cbi-value-field">
+                        <a v-if="loading">加载中...</a>
+                        <template v-else>
+                            <a v-if="status?.BackendState" style="color:green"> {{ status?.BackendState }}</a>
+                            <a v-else style="color:red">未运行</a>
+                        </template>
+                    </div>
+                </div>
+                <div class="cbi-value cbi-value-last" v-if="status?.Self?.ID">
+                    <label class="cbi-value-title">当前节点</label>
+                    <div class="cbi-value-field">
+                        <a>
+                            {{ status?.Self?.ID }}
+                            <template v-if="status?.Self?.HostName">
+                                （{{ status.Self.HostName }}）
+                            </template>
+                        </a>
+                    </div>
+                </div>
+                <div class="cbi-value cbi-value-last" v-if="status?.AuthURL">
+                    <label class="cbi-value-title">验证绑定</label>
+                    <div class="cbi-value-field">
+                        <a :href="status.AuthURL" target="_blank">{{ status.AuthURL }}</a>
+                    </div>
+                </div>
+                <div class="cbi-value cbi-value-last" v-if="user?.DisplayName">
+                    <label class="cbi-value-title">已绑定用户</label>
+                    <div class="cbi-value-field">
+                        <a href="https://login.tailscale.com/admin/machines/" target="_blank">{{ user.DisplayName }}</a>
+                        <br />
+                        <a @click="onLogout" style="color:green">注销登录并解除绑定</a>
                     </div>
                 </div>
             </div>
@@ -37,17 +62,7 @@
             <div class="cbi-section-node">
                 <!--  -->
                 <div class="cbi-value">
-                    <label class="cbi-value-title">接受DNS</label>
-                    <div class="cbi-value-field">
-                        <div class="cbi-checkbox">
-                            <input name="acceptdns" type="checkbox" :value="false" v-model="config.acceptDns">
-                            <label></label>
-                        </div>
-                    </div>
-                </div>
-                <!--  -->
-                <div class="cbi-value">
-                    <label class="cbi-value-title">接受组网</label>
+                    <label class="cbi-value-title">允许组网</label>
                     <div class="cbi-value-field">
                         <div class="cbi-checkbox">
                             <input name="acceptroutes" type="checkbox" :value="false" v-model="config.acceptRoutes">
@@ -60,7 +75,8 @@
                     <label class="cbi-value-title">设备名称</label>
                     <div class="cbi-value-field">
                         <div>
-                            <input type="text" class="cbi-input-text" name="hostname" v-model.trim="config.hostname">
+                            <input type="text" class="cbi-input-text" name="hostname" v-model.trim="config.hostname"
+                                placeholder="例如: iStoreOS">
                         </div>
                         <div class="cbi-value-description">
                             留空则使用设备的名称
@@ -69,10 +85,10 @@
                 </div>
                 <!--  -->
                 <div class="cbi-value">
-                    <label class="cbi-value-title">宣告网段</label>
+                    <label class="cbi-value-title">公开网段</label>
                     <div class="cbi-value-field">
                         <div>
-                            <input type="text" class="cbi-input-text" name="advertiseroutes" placeholder="IP地址,多个实用,分开"
+                            <input type="text" class="cbi-input-text" name="advertiseroutes" placeholder="IP地址,多个使用,分开"
                                 v-model.trim="config.advertiseRoutes">
                         </div>
                         <div class="cbi-value-description">
@@ -96,7 +112,8 @@
                     <label class="cbi-value-title">服务器地址</label>
                     <div class="cbi-value-field">
                         <div>
-                            <input type="text" class="cbi-input-text" name="loginserver" v-model.trim="config.loginServer">
+                            <input type="text" class="cbi-input-text" name="loginserver" v-model.trim="config.loginServer"
+                                placeholder="server 服务器地址,留空则不使用">
                         </div>
                     </div>
                 </div>
@@ -105,7 +122,8 @@
                     <label class="cbi-value-title">令牌</label>
                     <div class="cbi-value-field">
                         <div>
-                            <input type="password" class="cbi-input-password" name="authkey" v-model.trim="config.authkey">
+                            <input type="password" class="cbi-input-password" name="authkey" v-model.trim="config.authkey"
+                                placeholder="自定义令牌,留空则不使用">
                         </div>
                     </div>
                 </div>
@@ -113,45 +131,58 @@
         </div>
         <!--  -->
         <span class="cbi-page-actions control-group">
-            <button class="btn cbi-button cbi-button-apply" @click="onSubmit">保存并应用</button>
+            <button class="btn cbi-button cbi-button-apply" @click="onSubmit" :disabled="disabled">保存并应用</button>
         </span>
     </div>
 </template>
 <script setup lang="ts">
 import { ref } from 'vue';
-interface TailscaleStatus {
-    running?: boolean
+const BASEURL = "/cgi-bin/luci/admin/services/tailscaler"
+const loading = ref(true)
+const disabled = ref(false)
+const config = ref<ResponseConfig>({})
+const status = ref<ResponseStatus>({})
+const user = ref<ResponseStatusUser>({})
+const request = (input: string, init?: RequestInit | undefined) => {
+    const uri = `${BASEURL}${input}`
+    return fetch(uri, init)
 }
-interface TailscaleConfig {
-    enable?: boolean
-    acceptDns?: boolean
-    acceptRoutes?: boolean
-    hostname?: string
-    advertiseRoutes?: string
-    loginServer?: string
-    authkey?: string
-}
-const status = ref<boolean | undefined>(undefined)
-const config = ref<TailscaleConfig>({})
 const getStatus = async () => {
     try {
-        const resp = await fetch("/admin/services/tailscale/status", {
+        const resp = await request("/status", {
             method: "GET"
         })
-        const res = await resp.json() as TailscaleStatus
+        const res = await resp.json() as ResponseStatus
         if (res) {
-            status.value = res.running
+            status.value = res
+            if (res?.User) {
+                for (const key in res.User) {
+                    if (Object.prototype.hasOwnProperty.call(res.User, key)) {
+                        const element = res.User[key];
+                        if (element) {
+                            user.value = element
+                        }
+                    }
+                }
+            } else {
+                user.value = {}
+            }
+        } else {
+            status.value = {}
         }
     } catch (error) {
+        // 拿不到数据则认为程序没启动
         console.log(error);
+        status.value = {}
+        user.value = {}
     }
 }
 const getConfig = async () => {
     try {
-        const resp = await fetch("/admin/services/tailscale/config", {
+        const resp = await request("/config", {
             method: "GET"
         })
-        const res = await resp.json() as TailscaleConfig
+        const res = await resp.json() as ResponseConfig
         if (res) {
             config.value = res
         }
@@ -160,23 +191,26 @@ const getConfig = async () => {
     }
 }
 const getData = async () => {
-    setTimeout(() => {
-        getStatus()
-    }, 5000)
     try {
         await Promise.all([
-            getStatus(),
             getConfig(),
+            getStatus(),
         ])
     } catch (error) {
-
     } finally {
+        loading.value = false
     }
 }
+const getInterval = async () => {
+    setInterval(() => {
+        getStatus()
+    }, 5000)
+}
+getInterval()
 getData()
 const onSubmit = async () => {
     try {
-        const resp = await fetch("/admin/services/tailscale/config", {
+        const resp = await request("/config", {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json;charset=utf-8'
@@ -188,8 +222,29 @@ const onSubmit = async () => {
         }
     } catch (error) {
         console.log(error);
+    } finally {
+        location.reload()
     }
 
+}
+const onLogout = async () => {
+    if (!confirm("是否注销当前登录并且解绑当前设备？")) {
+        return
+    }
+    try {
+        const resp = await request("/logout", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+        })
+        if (resp) {
+        }
+    } catch (error) {
+        console.log(error);
+    } finally {
+        location.reload()
+    }
 }
 </script>
 <style lang="scss" scoped></style>
