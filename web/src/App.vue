@@ -161,14 +161,18 @@ const getStatus = async () => {
             }
             if (res?.User) {
                 if (userID.value) {
-                    const key = `${userID.value}`
-                    if (res.User[key]) {
-                        const element = res.User[key];
-                        user.value = element
+                    const userid = userID.value
+                    for (const key in res.User) {
+                        if (Object.prototype.hasOwnProperty.call(res.User, key)) {
+                            const element = res.User[key];
+                            if (element.ID === userid) {
+                                user.value = element
+                                break
+                            }
+                        }
                     }
                 }
-
-                if (!user.value) {
+                if (!user.value?.ID) {
                     for (const key in res.User) {
                         if (Object.prototype.hasOwnProperty.call(res.User, key)) {
                             const element = res.User[key];
