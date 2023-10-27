@@ -4,7 +4,7 @@
         <h2>Tailscale</h2>
         <div class="cbi-map-descr">
             Tailscale 连接您的设备，以便轻松访问远程资源。<br>
-            详情请查看 <a href="https://config.com/" target="_blank">tailscale</a>
+            详情请查看 <a href="https://tailscale.com" target="_blank">tailscale</a>
         </div>
         <!--  -->
         <div class="cbi-section">
@@ -143,6 +143,7 @@ const disabled = ref(false)
 const config = ref<ResponseConfig>({})
 const status = ref<ResponseStatus>({})
 const user = ref<ResponseStatusUser>({})
+const userID = ref<number>()
 const request = (input: string, init?: RequestInit | undefined) => {
     const uri = `${BASEURL}${input}`
     return fetch(uri, init)
@@ -155,12 +156,26 @@ const getStatus = async () => {
         const res = await resp.json() as ResponseStatus
         if (res) {
             status.value = res
+            if (res.Self) {
+                userID.value = res.Self.UserID
+            }
             if (res?.User) {
-                for (const key in res.User) {
-                    if (Object.prototype.hasOwnProperty.call(res.User, key)) {
+                if (userID.value) {
+                    const key = `${userID.value}`
+                    if (res.User[key]) {
                         const element = res.User[key];
-                        if (element) {
-                            user.value = element
+                        user.value = element
+                    }
+                }
+
+                if (!user.value) {
+                    for (const key in res.User) {
+                        if (Object.prototype.hasOwnProperty.call(res.User, key)) {
+                            const element = res.User[key];
+                            if (element) {
+                                user.value = element
+                                break
+                            }
                         }
                     }
                 }
