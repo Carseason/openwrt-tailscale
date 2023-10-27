@@ -16,7 +16,7 @@ start_service() {
 	logger -t tailscaler 'start_service'
 	config_load tailscaler
 	config_foreach get_config settings
-	if [ $enabled != 1 ]; then
+	if [ "$enabled" != 1 ]; then
 		stop_service
 		return 1
 	fi
@@ -27,19 +27,19 @@ start_service() {
 	# 
 	procd_open_instance
 	procd_set_param command /usr/sbin/tailscale up --reset
-	if [ $loginServer != "" ]; then
+	if [ -n "$loginServer" ]; then
 		procd_append_param command --login-server "$loginServer" 
 	fi
-	if [ $authkey != "" ]; then
+	if [ -n "$authkey" ]; then
 		procd_append_param command --authkey "$authkey" 
 	fi
-	if [ $hostname != "" ]; then
+	if [ -n "$hostname" ]; then
 		procd_append_param command --hostname "$hostname" 
 	fi
-	if [ $acceptRoutes == 1 ]; then
+	if [ "$acceptRoutes" = 1 ]; then
 		procd_append_param command --accept-routes true
 	fi
-	if [ $advertiseRoutes != "" ];then
+	if [ -n "$advertiseRoutes" ];then
 		procd_append_param command --advertise-routes "$advertiseRoutes"
 	fi
 	procd_set_param stdout 1
@@ -49,4 +49,5 @@ start_service() {
 }
 stop_service() {
 	/etc/init.d/tailscale stop
+	/etc/init.d/tailscale running && sleep 2
 }
