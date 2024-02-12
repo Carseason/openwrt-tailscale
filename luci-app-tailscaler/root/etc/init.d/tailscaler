@@ -37,7 +37,7 @@ start_service() {
 		procd_append_param command --hostname "$hostname" 
 	fi
 	if [ "$acceptRoutes" = 1 ]; then
-		procd_append_param command --accept-routes true
+		procd_append_param command --accept-routes
 	fi
 	if [ -n "$advertiseRoutes" ];then
 		procd_append_param command --advertise-routes "$advertiseRoutes"
