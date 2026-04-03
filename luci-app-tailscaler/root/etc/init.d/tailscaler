@@ -42,6 +42,8 @@ start_service() {
 	if [ -n "$advertiseRoutes" ];then
 		procd_append_param command --advertise-routes "$advertiseRoutes"
 	fi
+	procd_append_param command --accept-dns false
+
 	procd_set_param stdout 1
 	procd_set_param stderr 1
 	procd_close_instance
