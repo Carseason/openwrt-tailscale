@@ -136,13 +136,12 @@ jobs:
 
       - name: Copy Package
         run: |
-          cp -r ./${IPK_NAME}/ ~/openwrt-sdk/package
+          cp -a ./${IPK_NAME} ~/openwrt-sdk/package/
 
       - name: Build IPK
         run: |
           cd ~/openwrt-sdk
-          chmod 755 -R ./package/${IPK_NAME}
-          make -j16 V=s package/${IPK_NAME}/compile
+          make -j4 V=s package/${IPK_NAME}/compile
 
       # 提交下载
       - name: Upload bin directory

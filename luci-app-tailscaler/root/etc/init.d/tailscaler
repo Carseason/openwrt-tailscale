@@ -20,6 +20,13 @@ start_service() {
 		stop_service
 		return 1
 	fi
+	local fw_mode="iptables"
+	[ -x /sbin/fw4 ] && fw_mode="nftables"
+	if ! [ "$(uci -q get tailscale.settings.fw_mode)" = "$fw_mode" ]; then
+		uci -q set "tailscale.settings.fw_mode=$fw_mode"
+		uci -q commit tailscale
+		/etc/init.d/tailscale reload 2>/dev/null
+	fi
 	#
 	logger -t tailscaler 'start tailscale'
 	/etc/init.d/tailscale running || /etc/init.d/tailscale start
